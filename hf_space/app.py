@@ -295,125 +295,14 @@ def serve_static(path):
          return send_from_directory('static/assets', path)
     return send_from_directory('templates', path) # Fallback
 
-if __name__ == '__main__':
-    print("Starting Full Stack App on port 7860...")
-    app.run(host='0.0.0.0', port=7860, debug=False)
-
-# Initialize Flask App
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
-
 # -----------------------------
-# Global Settings & Model
+# API Endpoint for ML Prediction
 # -----------------------------
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = None
-best_threshold = 0.65
-
-def load_model():
-    global model, best_threshold
-    # Define model architecture
-    net = smp.DeepLabV3Plus(
-        encoder_name="resnet50",
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1
-    ).to(device)
-
-    # Checkpoints to look for
-    checkpoint_files = [
-        "deeplabv3p_best.pth",
-        "spillguard_enhanced_final.pth",
-        "spillguard_best.pth",
-        os.path.join(os.path.dirname(__file__), "deeplabv3p_best.pth")
-    ]
-
-    for ckpt_file in checkpoint_files:
-        if os.path.exists(ckpt_file):
-            try:
-                print(f"Loading model from {ckpt_file}...")
-                checkpoint = torch.load(ckpt_file, map_location=device)
-                
-                if "model_state_dict" in checkpoint:
-                    net.load_state_dict(checkpoint["model_state_dict"])
-                    best_threshold = float(checkpoint.get("best_threshold", best_threshold))
-                elif "model" in checkpoint:
-                    state_dict = checkpoint["model"]
-                    if isinstance(state_dict, dict):
-                        net.load_state_dict(state_dict)
-                    else:
-                        net.load_state_dict({k: v.to(device) for k, v in state_dict.items()})
-                    best_threshold = float(checkpoint.get("best_threshold", best_threshold))
-                else:
-                    net.load_state_dict(checkpoint, strict=False)
-                
-                net.eval()
-                model = net
-                print(f"Model loaded successfully. Threshold: {best_threshold}")
-                return
-            except Exception as e:
-                print(f"Failed to load {ckpt_file}: {e}")
-
-    print("Warning: No trained model found. Using untrained model.")
-    net.eval()
-    model = net
-
-# Load model on startup
-load_model()
-
-# -----------------------------
-# Preprocessing Logic
-# -----------------------------
-def preprocess_image(image):
-    IMG_SIZE = 512
-    if isinstance(image, Image.Image):
-        if image.mode in ("RGBA", "LA"):
-            image = image.convert("RGB")
-        img_array = np.array(image)
-    else:
-        img_array = image
-
-    # Grayscale conversion
-    if img_array.ndim == 3:
-        if img_array.shape[2] == 4:
-            img_array = img_array[..., :3]
-        img_gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-    else:
-        img_gray = img_array
-
-    # Normalize
-    img_gray = img_gray.astype(np.float32)
-    if img_gray.max() > 1.0:
-        img_gray /= 255.0
-
-    # Percentile stretching (SAR-like)
-    lo, hi = np.percentile(img_gray, [1, 99])
-    if hi > lo:
-        img_gray = np.clip(img_gray, lo, hi)
-        img_gray = (img_gray - lo) / max(hi - lo, 1e-6)
-    else:
-        mmin, mptp = float(img_gray.min()), float(np.ptp(img_gray))
-        img_gray = (img_gray - mmin) / (mptp + 1e-6)
-
-    # Replicate to 3 channels
-    img_3ch = np.stack([img_gray, img_gray, img_gray], axis=2)
-
-    # Transforms
-    transform = A.Compose([
-        A.LongestMaxSize(max_size=IMG_SIZE, interpolation=cv2.INTER_CUBIC),
-        A.PadIfNeeded(IMG_SIZE, IMG_SIZE, border_mode=cv2.BORDER_REFLECT_101),
-        A.ToFloat(max_value=1.0),
-        ToTensorV2(),
-    ])
-    transformed = transform(image=img_3ch)
-    img_tensor = transformed["image"].unsqueeze(0).to(device)
-    return img_tensor, img_gray
-
-# -----------------------------
-# API Endpoint
-# -----------------------------
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['POST', 'OPTIONS'])
 def predict():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+
     if model is None:
         return jsonify({'error': 'Model not loaded'}), 500
 
