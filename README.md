@@ -49,6 +49,8 @@ Vessel-Tracking/
 ├── final-version/        # Node.js Backend (API Gateway)
 │   ├── server.js         # Express Server & caching logic
 │   └── db.js             # MongoDB Schema & Connection
+├── api/                  # Vercel Serverless Function Entrypoint
+│   └── index.js          # Bridges Vercel to Express
 ├── Model/                # ML Development Environment
 │   ├── api.py            # Local Flask Interface for Model
 │   └── deeplabv3p_best.pth # Trained Model Weights
@@ -57,6 +59,7 @@ Vessel-Tracking/
 │   ├── Dockerfile        # Container config for Hugging Face
 │   ├── static/           # Built Frontend Assets
 │   └── templates/        # Frontend HTML
+├── package.json          # Root configuration for Vercel
 └── vercel.json           # Vercel Configuration (Alternative Deployment)
 ```
 
@@ -162,5 +165,28 @@ Returns vessel data + ML analysis.
 
 ---
 
-## 📄 License
-This project is licensed under the ISC License.
+---
+
+## ❓ Troubleshooting
+
+### 1. `405 Method Not Allowed` on Hugging Face
+*   **Cause**: The static file handler is catching the API request.
+*   **Fix**: Ensure `app.route('/predict')` is defined **before** `app.route('/<path:path>')` in `app.py`. We have fixed this in V3.
+
+### 2. `MongoDB Connection Error`
+*   **Cause**: IP address not whitelisted in MongoDB Atlas.
+*   **Fix**: Go to Atlas -> Network Access -> Add IP Address -> Allow Access from Anywhere (0.0.0.0/0) or add the specific Serverless IP.
+
+### 3. Missing API Keys
+*   **Symptoms**: Weather showing "N/A" or Satellite image failing.
+*   **Fix**: Double-check your `.env` variables or Vercel Environment Variables.
+
+---
+
+## 👤 Author
+
+**Ganesh Arihanth**
+*   [GitHub Profile](https://github.com/GaneshArihanth)
+*   [Hugging Face Space](https://huggingface.co/spaces/GaneshArihanth/Vessel-Oil-Spill-Detection-API)
+
+---
