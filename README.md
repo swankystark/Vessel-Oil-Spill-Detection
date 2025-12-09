@@ -268,9 +268,20 @@ We are constantly improving! Here is what's coming next:
 
 ---
 
+---
+
+## 📚 Research and References
+
+- [Oil Spill Identification from Satellite Images Using Deep Neural Networks](https://doi.org/10.3390/rs11151762) by Marios Krestenitis, Georgios Orfanidis, Konstantinos Ioannidis, Konstantinos Avgerinakis, Stefanos Vrochidis, and Ioannis Kompatsiaris
+- [A novel deep learning method for marine oil spill detection from satellite synthetic aperture radar imagery](https://doi.org/10.1016/j.marpolbul.2022.113666) By Xudong Huang, Biao Zhang, William Perrie, Yingcheng Lu, and Chen Wang
+- [Sensors, Features, and Machine Learning for Oil Spill Detection and Monitoring: A Review](https://doi.org/10.3390/rs12203338) by Rami Al-Ruzouq, Mohamed Barakat A. Gibril, Abdallah Shanableh, Abubakir Kais, Osman Hamed, Saeed Al-Mansoori, and Mohamad Ali Khalil
+- [Oil Spill Detection Using Machine Learning and Infrared Images](https://doi.org/10.3390/rs12244090) by Thomas De Kerf, Jona Gladines, Seppe Sels, and Steve Vanlanduit
+
+---
+
 ## 👤 Author
 
-**Ganesh Arihanth**
+**This project was built by Boopendranath C and Ganesh Arihanth.**
 *   [GitHub Profile](https://github.com/GaneshArihanth)
 *   [Hugging Face Space](https://huggingface.co/spaces/GaneshArihanth/Vessel-Oil-Spill-Detection-API)
 
